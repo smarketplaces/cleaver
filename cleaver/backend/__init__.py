@@ -81,6 +81,18 @@ class CleaverBackend(object):
         return  # pragma: nocover
 
     @abc.abstractmethod
+    def get_experiments_by_identity(self, identity):
+        """
+        Retrieve the experiments that a specific user is participating in, 
+        (if any exist).
+
+        :param identity a unique user identifier
+
+        Returns a list of tuples of the format (experiment_name, variant)
+        """
+        return  # pragma: nocover
+
+    @abc.abstractmethod
     def set_variant(self, identity, experiment_name, variant):
         """
         Set the variant for a specific user.
