@@ -47,6 +47,17 @@ class TestSQLAlchemy(TestCase):
         assert experiment.variants[2].name == 'large'
         assert experiment.variants[2].experiment.name == 'text_size'
 
+    def test_save_multiple_experiments(self):
+        b = self.b
+        b.save_experiment('background_color', ('black', 'white', 'grey'))
+        b.save_experiment('foreground_color', ('black', 'white', 'grey'))
+
+        assert model.Experiment.query.count() == 2
+        first, second = model.Experiment.query.all()
+        assert first.name == 'background_color'
+        assert second.name == 'foreground_color'
+        assert set([v.name for v in first.variants]) == set([v.name for v in second.variants])
+
     def test_get_experiment_no_match(self):
         b = self.b
 

@@ -38,9 +38,10 @@ class Experiment(ModelBase):
 
 class Variant(ModelBase):
     __tablename__ = 'cleaver_variant'
+    __table_args__ = (UniqueConstraint('name', 'experiment_id'),)
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    name = sa.Column(sa.Unicode(255), unique=True)
+    name = sa.Column(sa.Unicode(255))
     order = sa.Column(sa.Integer)
     experiment_id = sa.Column(
         sa.Integer,
