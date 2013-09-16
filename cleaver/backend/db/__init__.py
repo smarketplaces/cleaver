@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 def _sqlalchemy_installed():
     try:
         import sqlalchemy
@@ -136,7 +135,6 @@ class SQLAlchemyBackend(CleaverBackend):
 
         Returns a list of tuples of the format (experiment_name, variant)
         """
-        
         experiments = []
         try:
             matches = model.Participant.query.join(
@@ -162,57 +160,63 @@ class SQLAlchemyBackend(CleaverBackend):
         """
         try:
             experiment = model.Experiment.get_by(name=experiment_name)
-            variant = model.Variant.get_by(name=variant_name)
-            if experiment and variant and model.Participant.query.filter(and_(
-                model.Participant.identity == identity,
-                model.Participant.experiment_id == experiment.id,
-                model.Participant.variant_id == variant.id
-            )).count() == 0:
-                model.Participant(
-                    identity=identity,
-                    experiment=experiment,
-                    variant=variant
-                )
-                self.Session.commit()
+            if experiment:
+                variant = model.Variant.get_by(name=variant_name,
+                                               experiment_id=experiment.id)
+                if variant and model.Participant.query.filter(and_(
+                    model.Participant.identity == identity,
+                    model.Participant.experiment_id == experiment.id,
+                    model.Participant.variant_id == variant.id
+                )).count() == 0:
+                    model.Participant(
+                        identity=identity,
+                        experiment=experiment,
+                        variant=variant
+                    )
+                    self.Session.commit()
         finally:
             self.Session.close()
 
     def _mark_event(self, type, experiment_name, variant_name):
         try:
             experiment = model.Experiment.get_by(name=experiment_name)
-            variant = model.Variant.get_by(name=variant_name)
-            if experiment and variant and model.TrackedEvent.query.filter(and_(
-                model.TrackedEvent.type == type,
-                model.TrackedEvent.experiment_id == experiment.id,
-                model.TrackedEvent.variant_id == variant.id
-            )).first() is None:
-                model.TrackedEvent(
-                    type=type,
-                    experiment=experiment,
-                    variant=variant
-                )
-                self.Session.commit()
+            if experiment:
+                variant = model.Variant.get_by(name=variant_name,
+                                               experiment_id=experiment.id)
+                if variant and model.TrackedEvent.query.filter(and_(
+                    model.TrackedEvent.type == type,
+                    model.TrackedEvent.experiment_id == experiment.id,
+                    model.TrackedEvent.variant_id == variant.id
+                )).first() is None:
+                    model.TrackedEvent(
+                        type=type,
+                        experiment=experiment,
+                        variant=variant
+                    )
+                    self.Session.commit()
         finally:
             self.Session.close()
 
         try:
             experiment = model.Experiment.get_by(name=experiment_name)
-            variant = model.Variant.get_by(name=variant_name)
-            if experiment and variant:
-                self.Session.execute(
-                    'UPDATE %s SET total = total + 1 '
-                    'WHERE experiment_id = :experiment_id '
-                    'AND variant_id = :variant_id '
-                    'AND `type` = :type' % (
-                        model.TrackedEvent.__tablename__
-                    ),
-                    {
-                        'experiment_id': experiment.id,
-                        'variant_id': variant.id,
-                        'type': type
-                    }
-                )
-                self.Session.commit()
+            if experiment:
+                variant = model.Variant.get_by(name=variant_name,
+                                               experiment_id=experiment.id)
+                if variant:
+                    self.Session.execute(
+                        'UPDATE %s SET total = total + 1 '
+                        'WHERE experiment_id = :experiment_id '
+                        'AND variant_id = :variant_id '
+                        'AND `type` = :type' % (
+                            model.TrackedEvent.__tablename__
+                        ),
+                        {
+                            'experiment_id': experiment.id,
+                            'variant_id': variant.id,
+                            'type': type
+                        }
+                    )
+                    self.Session.commit()
         finally:
             self.Session.close()
 
